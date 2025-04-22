@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import LoginForm from '@/components/Auth/LoginForm';
+import LoginForm from '@/src/components/Auth/LoginForm';
 
 export default function Home() {
   const { isAuthenticated } = useSelector(state => state.auth);
