@@ -1,146 +1,155 @@
-const { Account } = require('../models');
+const { Account } = require("../models");
 
-exports.getAllAccounts = async (req, res) => {
+const getAllAccounts = async (req, res) => {
   try {
     const accounts = await Account.findAll({
-      where: { userId: req.user.id }
+      where: { userId: req.user.id },
     });
-    
+
     return res.status(200).json({
       success: true,
       count: accounts.length,
-      data: accounts
+      data: accounts,
     });
   } catch (error) {
+    console.error("Error in getAllAccounts:", error);
     return res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: error.message
+      message: "Server error",
+      error: error.message,
     });
   }
 };
 
-exports.createAccount = async (req, res) => {
+const createAccount = async (req, res) => {
   try {
     const { name, type, balance, currency } = req.body;
-    
+
     const account = await Account.create({
       name,
       type,
       balance,
       currency,
-      userId: req.user.id
+      userId: req.user.id,
     });
-    
+
     return res.status(201).json({
       success: true,
-      message: 'Account created successfully',
-      data: account
+      message: "Account created successfully",
+      data: account,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: error.message
+      message: "Server error",
+      error: error.message,
     });
   }
 };
 
-exports.getAccountById = async (req, res) => {
+const getAccountById = async (req, res) => {
   try {
     const account = await Account.findOne({
-      where: { 
+      where: {
         id: req.params.id,
-        userId: req.user.id
-      }
+        userId: req.user.id,
+      },
     });
-    
+
     if (!account) {
       return res.status(404).json({
         success: false,
-        message: 'Account not found'
+        message: "Account not found",
       });
     }
-    
+
     return res.status(200).json({
       success: true,
-      data: account
+      data: account,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: error.message
+      message: "Server error",
+      error: error.message,
     });
   }
 };
 
-exports.updateAccount = async (req, res) => {
+const updateAccount = async (req, res) => {
   try {
     const { name, type, balance, currency } = req.body;
-    
+
     let account = await Account.findOne({
-      where: { 
+      where: {
         id: req.params.id,
-        userId: req.user.id
-      }
+        userId: req.user.id,
+      },
     });
-    
+
     if (!account) {
       return res.status(404).json({
         success: false,
-        message: 'Account not found'
+        message: "Account not found",
       });
     }
-    
+
     account = await account.update({
       name,
       type,
       balance,
-      currency
+      currency,
     });
-    
+
     return res.status(200).json({
       success: true,
-      message: 'Account updated successfully',
-      data: account
+      message: "Account updated successfully",
+      data: account,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: error.message
+      message: "Server error",
+      error: error.message,
     });
   }
 };
 
-exports.deleteAccount = async (req, res) => {
+const deleteAccount = async (req, res) => {
   try {
     const account = await Account.findOne({
-      where: { 
+      where: {
         id: req.params.id,
-        userId: req.user.id
-      }
+        userId: req.user.id,
+      },
     });
-    
+
     if (!account) {
       return res.status(404).json({
         success: false,
-        message: 'Account not found'
+        message: "Account not found",
       });
     }
-    
+
     await account.destroy();
-    
+
     return res.status(200).json({
       success: true,
-      message: 'Account deleted successfully'
+      message: "Account deleted successfully",
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: error.message
+      message: "Server error",
+      error: error.message,
     });
   }
+};
+
+module.exports = {
+  getAllAccounts,
+  createAccount,
+  getAccountById,
+  updateAccount,
+  deleteAccount,
 };
