@@ -2,7 +2,7 @@
 const { Transaction, Account, Category } = require('../models');
 const { sequelize } = require('../models');
 
-exports.getAllTransactions = async (req, res) => {
+const getAllTransactions = async (req, res) => {
   try {
     const transactions = await Transaction.findAll({
       where: { userId: req.user.id },
@@ -27,7 +27,7 @@ exports.getAllTransactions = async (req, res) => {
   }
 };
 
-exports.createTransaction = async (req, res) => {
+const createTransaction = async (req, res) => {
   const t = await sequelize.transaction();
   
   try {
@@ -84,4 +84,138 @@ exports.createTransaction = async (req, res) => {
   }
 };
 
-// Additional controller methods for CRUD operations on transactions
+const getTransactionById = async(req,res)=>{
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const transaction = await Transaction.findOne({
+      where: {
+        id,
+        userId
+      },
+      include: {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name', 'type', 'color']
+      }
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: transaction
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching transaction',
+      error: error.message
+    });
+  }
+}
+
+const updateTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { amount, description, date, categoryId } = req.body;
+
+    const transaction = await Transaction.findOne({
+      where: {
+        id,
+        userId
+      }
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+
+    // If changing category, verify new category belongs to user
+    if (categoryId && categoryId !== transaction.categoryId) {
+      const category = await Category.findOne({
+        where: {
+          id: categoryId,
+          userId
+        }
+      });
+
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: 'Category not found or does not belong to user'
+        });
+      }
+    }
+
+    await transaction.update({
+      amount: amount || transaction.amount,
+      description: description || transaction.description,
+      date: date || transaction.date,
+      categoryId: categoryId || transaction.categoryId
+    });
+
+    res.status(200).json({
+      success: true,
+      data: transaction
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating transaction',
+      error: error.message
+    });
+  }
+};
+
+// Delete transaction
+const deleteTransaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const transaction = await Transaction.findOne({
+      where: {
+        id,
+        userId
+      }
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+
+    await transaction.destroy();
+
+    res.status(200).json({
+      success: true,
+      message: 'Transaction deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting transaction',
+      error: error.message
+    });
+  }
+};
+module.exports = {
+  getAllTransactions,
+  createTransaction,
+  getTransactionById,
+  deleteTransaction,
+  updateTransaction,
+};
